@@ -1,5 +1,7 @@
 import { Actor } from "./actors";
+import { DirectMessage } from "./direct-message";
 import { ActivityPubObject } from "./object";
+import { ActivityTypes } from "./outbox";
 import { PolicyActivities, PolicyVerbs, lookupPolicy } from "./policy";
 
 export function follow(follower: Actor, toFollow: Actor) {
@@ -13,7 +15,7 @@ export function followEachOther(actor1: Actor, actor2: Actor) {
 }
 
 export function tryLike(actor: Actor, object: ActivityPubObject) {
-  if (!lookupPolicy(PolicyVerbs.do, PolicyActivities.liked, actor, object)) {
+  if (!lookupPolicy(PolicyVerbs.do, ActivityTypes.like, actor, object)) {
     console.log(actor.name, 'tried to like', object, 'but could not because the policy does not allow it.');
     return false;
   }
@@ -22,6 +24,16 @@ export function tryLike(actor: Actor, object: ActivityPubObject) {
   actor.like(object);
   object.addLike(actor);
   return true;
+}
+
+export function trySend(sender: Actor, receiver: Actor, object: ActivityPubObject) {
+  if (!lookupPolicy(PolicyVerbs.do, ActivityTypes.create, sender, object)) {
+    console.log(sender.name, 'tried to create', object, 'but could not because the policy does not allow it.');
+    return false;
+  }
+
+  sender.send(object);
+  receiver.receive(object);
 }
 
 export function retrieveActivities(viewer: Actor, actor: Actor) {

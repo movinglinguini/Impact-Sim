@@ -1,5 +1,6 @@
+import { DirectMessage } from "./direct-message";
 import { ActivityPubObject } from "./object";
-import { Activity } from "./outbox";
+import { Activity, ActivityTypes } from "./outbox";
 import { PolicyActivities, PolicyObjectTypes } from "./policy";
 
 export const ActorsDB = new Map();
@@ -15,6 +16,7 @@ export class Actor extends ActivityPubObject {
   private _followers: Actor[] = [];
   private _liked: ActivityPubObject[] = [];
   private _outbox: Activity[] = [];
+  private _inbox: Activity[] = [];
 
   get id(): string | number {
     return this._id;
@@ -49,8 +51,8 @@ export class Actor extends ActivityPubObject {
   public addFollow(follow: Actor) {
     this._following.push(follow);
     this._outbox.push(new Activity(
+      ActivityTypes.follow,
       this,
-      PolicyActivities.followed,
       follow,
     ));
   }
@@ -58,10 +60,26 @@ export class Actor extends ActivityPubObject {
   public like(object: ActivityPubObject) {
     this._liked.push(object);
     this._outbox.push(new Activity(
+      ActivityTypes.add,
       this,
-      PolicyActivities.liked,
       object,
     ))
+  }
+
+  public receive(object: ActivityPubObject) {
+    this._inbox.push(new Activity(
+      ActivityTypes.create,
+      this,
+      object
+    ));
+  }
+
+  public send(object: ActivityPubObject) {
+    this._outbox.push(new Activity(
+      ActivityTypes.create,
+      this,
+      object
+    ));
   }
 
   isFollowing(actor: Actor) {

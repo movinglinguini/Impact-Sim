@@ -6,6 +6,14 @@ export class ActivityPubObject {
   protected _type: PolicyObjectTypes;
   protected _likes: Actor[] = [];
 
+  get type() {
+    return this._type;
+  }
+
+  constructor() {
+    this._id = Math.random() * 123456789;
+  }
+
   addLike(actor: Actor) {
     this._likes.push(actor);
   }

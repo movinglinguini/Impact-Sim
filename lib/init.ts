@@ -1,14 +1,16 @@
 import { Actor } from "./actors";
 import * as Activities from './activities';
 import { Post } from "./posts";
-import { PolicyActivities, PolicyVerbs, setPolicy } from "./policy";
+import { PolicyActivities, PolicyObjectTypes, PolicyVerbs, setPolicy } from "./policy";
+import { DirectMessage } from "./direct-message";
+import { Activity, ActivityTypes } from "./outbox";
 
 /**
  * Initiate privacy policy
  */
 setPolicy(
   PolicyVerbs.retrieve,
-  PolicyActivities.followed,
+  ActivityTypes.follow,
   (retriever, originator) => {
     return true;
   }
@@ -16,17 +18,41 @@ setPolicy(
 
 setPolicy(
   PolicyVerbs.retrieve,
-  PolicyActivities.liked,
+  ActivityTypes.like,
   (retriever: Actor, originator: Actor) => {
     return retriever.isFollowing(originator);
   }
-)
+);
 
 setPolicy(
   PolicyVerbs.do,
-  PolicyActivities.liked,
+  ActivityTypes.like,
   (liker, object: Post) => {
     return liker.isFollowing(object.creator)
+  }
+);
+
+setPolicy(
+  PolicyVerbs.do,
+  ActivityTypes.create,
+  (sender, object: DirectMessage) => {
+    if (object.type != PolicyObjectTypes.directMessage) {
+      return true;
+    }
+
+    return sender.isFollowing(object.receiver);
+  }
+);
+
+setPolicy(
+  PolicyVerbs.retrieve,
+  ActivityTypes.create,
+  (retriever, object: DirectMessage) => {
+    if (object.type != PolicyObjectTypes.directMessage) {
+      return true;
+    }
+
+    return retriever.id == object.receiver.id || object.sender.id == object.sender.id;
   }
 )
 
@@ -34,14 +60,33 @@ setPolicy(
 const marissa = new Actor('Marissa', 'marbar', '', '');
 const damien = new Actor('Damien', 'damiron', '', '');
 const altRightGuy = new Actor('Roderick', 'wolf', '', '');
+const pepper = new Actor('Pepper', 'pepperdapeeg', '', '');
+const peppersFriend = new Actor('Salt', 'saltydog', '', '');
+
+/** Initiate actor follows */
 Activities.followEachOther(marissa, damien);
 Activities.follow(damien, altRightGuy);
+Activities.followEachOther(pepper, peppersFriend);
 
 /**
  * Initiate posts
  */
 const post = new Post('Lorem ipsum ipsum ipsum something alt-right', altRightGuy);
+
+/** Initiate post likes */
 Activities.tryLike(damien, post);
 
-const activities = Activities.retrieveActivities(marissa, damien);
-console.log('Marissa can see the following of Damien\'s activities:', activities)
+/**
+ * Initiate messages
+ */
+Activities.trySend(peppersFriend, pepper, new DirectMessage(peppersFriend, pepper, 'Send this to 5 other people by the end of your week. If you don\'t your house will burn down!'));
+Activities.trySend(pepper, peppersFriend, new DirectMessage(pepper, peppersFriend, 'ugh don\'t tell me you were hacked...'))
+
+let activities = Activities.retrieveActivities(marissa, damien);
+console.log('Marissa can see the following of Damien\'s activities:', activities);
+
+activities = Activities.retrieveActivities(marissa, pepper);
+console.log('Marissa cannot see that Pepper received a message from Salt.', activities);
+
+activities = Activities.retrieveActivities(pepper, peppersFriend);
+console.log('Pepper can see that she received a message from Salt.', activities);
