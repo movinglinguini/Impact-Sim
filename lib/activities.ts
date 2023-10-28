@@ -1,8 +1,25 @@
 import { Actor } from "./actors";
-import { DirectMessage } from "./direct-message";
 import { ActivityPubObject } from "./object";
-import { ActivityTypes } from "./outbox";
-import { PolicyActivities, PolicyVerbs, lookupPolicy } from "./policy";
+import { PolicyVerbs, lookupPolicy } from "./policy";
+
+export enum ActivityTypes {
+  create = 'create',
+  delete = 'delete',
+  follow = 'follow',
+  like = 'like',
+  add = 'add'
+}
+
+export class Activity {
+  static timestamp: number = 0;
+  
+  constructor(private _type: ActivityTypes, private _actor: Actor, private _object: ActivityPubObject) {}
+
+  /** */
+  isRetrievable(retriever: Actor): boolean {
+    return lookupPolicy(PolicyVerbs.retrieve, this._type, this._object.type, retriever, this._actor);
+  }
+}
 
 export function follow(follower: Actor, toFollow: Actor) {
   follower.addFollow(toFollow);
@@ -15,7 +32,7 @@ export function followEachOther(actor1: Actor, actor2: Actor) {
 }
 
 export function tryLike(actor: Actor, object: ActivityPubObject) {
-  if (!lookupPolicy(PolicyVerbs.do, ActivityTypes.like, actor, object)) {
+  if (!lookupPolicy(PolicyVerbs.do, ActivityTypes.like, object.type, actor, object)) {
     console.log(actor.name, 'tried to like', object, 'but could not because the policy does not allow it.');
     return false;
   }
@@ -27,7 +44,7 @@ export function tryLike(actor: Actor, object: ActivityPubObject) {
 }
 
 export function trySend(sender: Actor, receiver: Actor, object: ActivityPubObject) {
-  if (!lookupPolicy(PolicyVerbs.do, ActivityTypes.create, sender, object)) {
+  if (!lookupPolicy(PolicyVerbs.do, ActivityTypes.create, object.type, sender, object)) {
     console.log(sender.name, 'tried to create', object, 'but could not because the policy does not allow it.');
     return false;
   }

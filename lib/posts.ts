@@ -1,9 +1,8 @@
 import { Actor } from "./actors";
-import { ActivityPubObject } from "./object";
-import { PolicyObjectTypes } from "./policy";
+import { ActivityPubObject, ActivityPubObjectTypes } from "./object";
 
 export class Post extends ActivityPubObject {
-  protected _type: PolicyObjectTypes.post;
+  protected _type: ActivityPubObjectTypes.post;
 
   private _content: string;
   private _creator: Actor;

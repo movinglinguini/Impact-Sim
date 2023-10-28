@@ -1,9 +1,18 @@
 import { Actor } from "./actors";
-import { PolicyObjectTypes } from "./policy";
+
+export enum ActivityPubObjectTypes {
+  actor = 'actor',
+  post = 'post',
+  activity = 'activity',
+  directMessage = 'directMessage',
+  reblog = 'reblog',
+  favorite = 'favorite',
+}
+
 
 export class ActivityPubObject {
-  protected _id: string | number;
-  protected _type: PolicyObjectTypes;
+  protected _id: string;
+  protected _type: ActivityPubObjectTypes;
   protected _likes: Actor[] = [];
 
   get type() {
@@ -11,7 +20,7 @@ export class ActivityPubObject {
   }
 
   constructor() {
-    this._id = Math.random() * 123456789;
+    this._id = `${Math.random() * 123456789}`;
   }
 
   addLike(actor: Actor) {

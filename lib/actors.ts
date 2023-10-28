@@ -1,17 +1,16 @@
-import { DirectMessage } from "./direct-message";
-import { ActivityPubObject } from "./object";
-import { Activity, ActivityTypes } from "./outbox";
-import { PolicyActivities, PolicyObjectTypes } from "./policy";
+import { ActivityPubObject, ActivityPubObjectTypes } from "./object";
+import { Activity, ActivityTypes } from "./activities";
 
 export const ActorsDB = new Map();
+export enum ActorRoles {
+  authenticatedUser,
+  unauthenticatedUser,
+  admins
+};
 
 export class Actor extends ActivityPubObject {
-  protected _type = PolicyObjectTypes.actor;
-
-  private _name: string;
-  private _username: string;
-  private _summary: string;
-  private _icon: string;
+  protected _type = ActivityPubObjectTypes.actor;
+  
   private _following: Actor[] = [];
   private _followers: Actor[] = [];
   private _liked: ActivityPubObject[] = [];
@@ -22,21 +21,20 @@ export class Actor extends ActivityPubObject {
     return this._id;
   }
 
-  get name(): string {
-    return this._name;
-  }
-
   get outbox(): Activity[] {
     return this._outbox;
   }
   
-  constructor(name: string, username: string, summary: string, icon: string, following?: Actor[], followers?: Actor[]) {
+  constructor(
+    public name: string,
+    public username: string,
+    public summary: string,
+    public icon: string,
+    public roles: ActorRoles[],
+    following?: Actor[],
+    followers?: Actor[]
+  ) {
     super();
-
-    this._id = Math.random() * 200000;
-    this._name = name;
-    this._summary = summary;
-    this._icon = icon;
 
     this._following = following || [];
     this._followers = followers || [];
@@ -84,6 +82,10 @@ export class Actor extends ActivityPubObject {
 
   isFollowing(actor: Actor) {
     return Boolean(this._following.find(a => a.id === actor.id))
+  }
+
+  is(actor: Actor) {
+    return this.id === actor.id;
   }
 }
 
