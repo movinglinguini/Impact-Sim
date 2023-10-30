@@ -1,67 +1,60 @@
-import { Actor } from "./actors";
+import { Actor, ActorRoles } from "./actors";
 import * as Activities from './activities';
 import { Post } from "./posts";
-import { PolicyActivities, PolicyObjectTypes, PolicyVerbs, setPolicy } from "./policy";
+import {  PolicyVerbs, setPolicy } from "./policy";
 import { DirectMessage } from "./direct-message";
-import { Activity, ActivityTypes } from "./outbox";
+import { ActivityPubObjectTypes } from "./object";
 
 /**
  * Initiate privacy policy
  */
-setPolicy(
-  PolicyVerbs.retrieve,
-  ActivityTypes.follow,
-  (retriever, originator) => {
-    return true;
-  }
-);
+// setPolicy(
+//   PolicyVerbs.retrieve,
+//   Activities.ActivityTypes.follow,
+//   ActivityPubObjectTypes.actor,
+//   (retriever: Actor, originator: Actor) => {
+//     return retriever.isFollowing(originator);
+//   }
+// );
 
-setPolicy(
-  PolicyVerbs.retrieve,
-  ActivityTypes.like,
-  (retriever: Actor, originator: Actor) => {
-    return retriever.isFollowing(originator);
-  }
-);
+// setPolicy(
+//   PolicyVerbs.do,
+//   ActivityTypes.like,
+//   (liker, object: Post) => {
+//     return liker.isFollowing(object.creator)
+//   }
+// );
 
-setPolicy(
-  PolicyVerbs.do,
-  ActivityTypes.like,
-  (liker, object: Post) => {
-    return liker.isFollowing(object.creator)
-  }
-);
+// setPolicy(
+//   PolicyVerbs.do,
+//   ActivityTypes.create,
+//   (sender, object: DirectMessage) => {
+//     if (object.type != PolicyObjectTypes.directMessage) {
+//       return true;
+//     }
 
-setPolicy(
-  PolicyVerbs.do,
-  ActivityTypes.create,
-  (sender, object: DirectMessage) => {
-    if (object.type != PolicyObjectTypes.directMessage) {
-      return true;
-    }
+//     return sender.isFollowing(object.receiver);
+//   }
+// );
 
-    return sender.isFollowing(object.receiver);
-  }
-);
+// setPolicy(
+//   PolicyVerbs.retrieve,
+//   ActivityTypes.create,
+//   (retriever, object: DirectMessage) => {
+//     if (object.type != PolicyObjectTypes.directMessage) {
+//       return true;
+//     }
 
-setPolicy(
-  PolicyVerbs.retrieve,
-  ActivityTypes.create,
-  (retriever, object: DirectMessage) => {
-    if (object.type != PolicyObjectTypes.directMessage) {
-      return true;
-    }
-
-    return retriever.id == object.receiver.id || object.sender.id == object.sender.id;
-  }
-)
+//     return retriever.id == object.receiver.id || object.sender.id == object.sender.id;
+//   }
+// )
 
 /** Initiate new actors */
-const marissa = new Actor('Marissa', 'marbar', '', '');
-const damien = new Actor('Damien', 'damiron', '', '');
-const altRightGuy = new Actor('Roderick', 'wolf', '', '');
-const pepper = new Actor('Pepper', 'pepperdapeeg', '', '');
-const peppersFriend = new Actor('Salt', 'saltydog', '', '');
+const marissa = new Actor('Marissa', 'marbar', '', '', [ActorRoles.authenticatedUser]);
+const damien = new Actor('Damien', 'damiron', '', '', [ActorRoles.authenticatedUser]);
+const altRightGuy = new Actor('Roderick', 'wolf', '', '', [ActorRoles.authenticatedUser]);
+const pepper = new Actor('Pepper', 'pepperdapeeg', '', '', [ActorRoles.authenticatedUser]);
+const peppersFriend = new Actor('Salt', 'saltydog', '', '', [ActorRoles.authenticatedUser]);
 
 /** Initiate actor follows */
 Activities.followEachOther(marissa, damien);

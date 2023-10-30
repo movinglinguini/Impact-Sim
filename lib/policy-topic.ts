@@ -5,7 +5,7 @@ import { PolicyVerbs, setPolicy } from "../lib/policy";
 
 export class PolicyTopic {
   // Array of choices
-  private _choices: { text: string, setPolicy: () => void }[];
+  private _choices: { text: string, apply: () => void }[];
 
   constructor(public tag: string) {}
 
@@ -18,10 +18,14 @@ export class PolicyTopic {
       fn: (actor: Actor, object: ActivityPubObject) => boolean
     }) {
       this._choices.push({
-        setPolicy: () => setPolicy(policyRep.verb, policyRep.activity, policyRep.objectType, policyRep.fn),
+        apply: () => setPolicy(policyRep.verb, policyRep.activity, policyRep.objectType, policyRep.fn),
         text,
       });
 
       return this;
+    }
+
+    applyChoice(choiceIndex: number) {
+      this._choices[choiceIndex].apply();
     }
 }
