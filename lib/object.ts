@@ -7,6 +7,10 @@ export enum ActivityPubObjectTypes {
   directMessage = 'directMessage',
   reblog = 'reblog',
   favorite = 'favorite',
+  // as in an object reifying a friendship between two people
+  friendship = 'friendship',
+  // as in an object reifying that two people are blocked
+  block = 'block'
 }
 
 
